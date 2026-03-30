@@ -8,6 +8,8 @@ export async function GET(request: NextRequest) {
   const gmFilter = searchParams.get("gm") || "";
   const a2hFrom = searchParams.get("a2h_from") || "";
   const a2hTo = searchParams.get("a2h_to") || "";
+  const liveFrom = searchParams.get("live_from") || "";
+  const liveTo = searchParams.get("live_to") || "";
 
   try {
     const allStatuses = await getLatestStatuses();
@@ -60,6 +62,22 @@ export async function GET(request: NextRequest) {
       filtered = filtered.filter((s) => {
         if (!s.a2h_date) return false;
         return new Date(s.a2h_date as string) <= to;
+      });
+    }
+
+    // Filter by Live date range
+    if (liveFrom) {
+      const from = new Date(liveFrom);
+      filtered = filtered.filter((s) => {
+        if (!s.live_date) return false;
+        return new Date(s.live_date as string) >= from;
+      });
+    }
+    if (liveTo) {
+      const to = new Date(liveTo + "T23:59:59.999Z");
+      filtered = filtered.filter((s) => {
+        if (!s.live_date) return false;
+        return new Date(s.live_date as string) <= to;
       });
     }
 

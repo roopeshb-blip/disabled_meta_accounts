@@ -55,6 +55,8 @@ export default function Home() {
   const [gmFilter, setGmFilter] = useState("");
   const [a2hFrom, setA2hFrom] = useState("");
   const [a2hTo, setA2hTo] = useState("");
+  const [liveFrom, setLiveFrom] = useState("");
+  const [liveTo, setLiveTo] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -71,6 +73,8 @@ export default function Home() {
       if (gmFilter) params.set("gm", gmFilter);
       if (a2hFrom) params.set("a2h_from", a2hFrom);
       if (a2hTo) params.set("a2h_to", a2hTo);
+      if (liveFrom) params.set("live_from", liveFrom);
+      if (liveTo) params.set("live_to", liveTo);
 
       const res = await fetch(`/api/accounts?${params.toString()}`);
       const data = await res.json();
@@ -90,7 +94,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [filter, search, gmFilter, a2hFrom, a2hTo]);
+  }, [filter, search, gmFilter, a2hFrom, a2hTo, liveFrom, liveTo]);
 
   useEffect(() => {
     const debounce = setTimeout(() => fetchAccounts(), 300);
@@ -242,25 +246,25 @@ export default function Home() {
           </select>
         </div>
 
-        {/* A2H Date Range Filter */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
-          <span className="text-sm text-gray-600 font-medium whitespace-nowrap">A2H Date:</span>
+        {/* Date Range Filters */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 mb-6 flex-wrap">
+          <span className="text-sm text-gray-600 font-medium whitespace-nowrap">Live Date:</span>
           <input
             type="date"
-            value={a2hFrom}
-            onChange={(e) => setA2hFrom(e.target.value)}
+            value={liveFrom}
+            onChange={(e) => setLiveFrom(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <span className="text-sm text-gray-400">to</span>
           <input
             type="date"
-            value={a2hTo}
-            onChange={(e) => setA2hTo(e.target.value)}
+            value={liveTo}
+            onChange={(e) => setLiveTo(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          {(a2hFrom || a2hTo) && (
+          {(liveFrom || liveTo) && (
             <button
-              onClick={() => { setA2hFrom(""); setA2hTo(""); }}
+              onClick={() => { setLiveFrom(""); setLiveTo(""); }}
               className="px-3 py-2 text-sm text-gray-500 hover:text-red-600 border border-gray-300 rounded-lg"
             >
               Clear
