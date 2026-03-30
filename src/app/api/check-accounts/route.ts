@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { runFullCheck } from "@/lib/checker";
 
-// This endpoint is called by GitHub Actions cron or manually
-export async function POST(request: Request) {
-  // Simple auth via secret header
-  const authHeader = request.headers.get("x-cron-secret");
+// Vercel Cron hits this as GET with Authorization: Bearer <CRON_SECRET>
+export async function GET(request: Request) {
+  // Verify Vercel cron auth in production
+  const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
-  if (cronSecret && authHeader !== cronSecret) {
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -23,8 +23,8 @@ export async function POST(request: Request) {
   }
 }
 
-// Allow GET for manual trigger from browser (dev only)
-export async function GET() {
+// POST for manual trigger from dashboard UI
+export async function POST() {
   try {
     const result = await runFullCheck();
     return NextResponse.json(result);
@@ -37,4 +37,4 @@ export async function GET() {
   }
 }
 
-export const maxDuration = 300; // 5 min timeout for Vercel
+export const maxDuration = 300; // 5 min timeout for Vercel Pro
