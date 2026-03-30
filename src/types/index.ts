@@ -14,6 +14,7 @@ export interface AdAccountStatus {
   gc_id: string | null;
   gm_name: string | null;
   gm_id: string | null;
+  a2h_date: string | null;
   last_checked_at: string;
   previous_status: number | null;
   status_changed_at: string | null;

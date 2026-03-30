@@ -12,9 +12,10 @@ export interface SellerAdAccount {
   gc_name: string | null;
   gm_id: string | null;
   gm_name: string | null;
+  a2h_date: string | null;
 }
 
-const METABASE_CARD_ID = 8931; // "Meta Ad Account Monitor - Hit Sellers"
+const METABASE_CARD_ID = 8932; // "Meta Ad Account Monitor - Hit Sellers"
 
 async function getSessionToken(): Promise<string> {
   const metabaseUrl = process.env.METABASE_URL;
@@ -70,5 +71,6 @@ export async function fetchHitSellersWithAdAccounts(): Promise<SellerAdAccount[]
     gc_name: row.gc_name || null,
     gm_id: row.gm_id || null,
     gm_name: row.gm_name || null,
+    a2h_date: row.a2h_date || null,
   }));
 }

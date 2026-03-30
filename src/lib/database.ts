@@ -34,10 +34,19 @@ export async function initSchema(): Promise<void> {
       gc_id TEXT,
       gm_name TEXT,
       gm_id TEXT,
+      a2h_date TIMESTAMPTZ,
       last_checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       previous_status INTEGER,
       status_changed_at TIMESTAMPTZ
     )
+  `);
+
+  // Add a2h_date column if it doesn't exist (migration for existing tables)
+  await db.query(`
+    DO $$ BEGIN
+      ALTER TABLE meta_ad_account_status ADD COLUMN IF NOT EXISTS a2h_date TIMESTAMPTZ;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $$
   `);
 
   // Index for fast lookups
@@ -64,7 +73,7 @@ export async function saveAccountStatuses(
     "seller_id", "seller_name", "ad_account_id", "ad_account_type",
     "account_status", "account_status_label", "disable_reason", "disable_reason_label",
     "bm_id", "bm_name", "bm_status", "gc_name", "gc_id", "gm_name", "gm_id",
-    "last_checked_at", "previous_status", "status_changed_at",
+    "a2h_date", "last_checked_at", "previous_status", "status_changed_at",
   ];
 
   const values: unknown[] = [];
@@ -80,7 +89,7 @@ export async function saveAccountStatuses(
       s.seller_id, s.seller_name, s.ad_account_id, s.ad_account_type,
       s.account_status, s.account_status_label, s.disable_reason, s.disable_reason_label,
       s.bm_id, s.bm_name, s.bm_status, s.gc_name, s.gc_id, s.gm_name, s.gm_id,
-      s.last_checked_at, s.previous_status, s.status_changed_at || null,
+      s.a2h_date || null, s.last_checked_at, s.previous_status, s.status_changed_at || null,
     );
   }
 

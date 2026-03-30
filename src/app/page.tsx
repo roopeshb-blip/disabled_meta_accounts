@@ -18,6 +18,7 @@ interface AccountRecord {
   gc_id: string | null;
   gm_name: string | null;
   gm_id: string | null;
+  a2h_date: string | null;
   last_checked_at: string;
   previous_status: number | null;
   status_changed_at: string | null;
@@ -239,6 +240,7 @@ export default function Home() {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">BM</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">GC/GM</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">A2H Date</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Checked</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Previous</th>
                   </tr>
@@ -285,6 +287,11 @@ export default function Home() {
                         {acc.gm_name && (
                           <div className="text-xs text-gray-400">GM: {acc.gm_name}</div>
                         )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500">
+                        {acc.a2h_date
+                          ? new Date(acc.a2h_date).toLocaleDateString()
+                          : "-"}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">
                         {acc.last_checked_at
