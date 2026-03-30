@@ -17,6 +17,7 @@ export interface SellerAdAccount {
 }
 
 const METABASE_CARD_ID = 8934; // "Meta Ad Account Monitor - Hit Sellers v4 (fixed A2H date)"
+const A2H_CARD_ID = 8935; // "Meta Ad Account Monitor - A2H Dates (Redshift)"
 
 async function getSessionToken(): Promise<string> {
   const metabaseUrl = process.env.METABASE_URL;
@@ -63,6 +64,30 @@ export async function fetchHitSellersWithAdAccounts(): Promise<SellerAdAccount[]
 
   const rows: Record<string, string | null>[] = await response.json();
 
+  // Fetch A2H dates from Redshift (more complete than BQ changeslogs)
+  const a2hMap = new Map<string, string>();
+  try {
+    const a2hUrl = `${metabaseUrl}/api/card/${A2H_CARD_ID}/query/json`;
+    const a2hResponse = await fetch(a2hUrl, {
+      method: "POST",
+      headers: {
+        "X-Metabase-Session": sessionToken,
+        "Content-Type": "application/json",
+      },
+    });
+    if (a2hResponse.ok) {
+      const a2hRows: Record<string, string | null>[] = await a2hResponse.json();
+      for (const row of a2hRows) {
+        if (row.seller_id && row.a2h_date) {
+          a2hMap.set(row.seller_id, row.a2h_date);
+        }
+      }
+      console.log(`Loaded ${a2hMap.size} A2H dates from Redshift`);
+    }
+  } catch (err) {
+    console.warn("Failed to fetch A2H dates from Redshift:", err);
+  }
+
   return rows.map((row) => ({
     seller_id: row.seller_id || "",
     seller_name: row.seller_name || "",
@@ -72,7 +97,7 @@ export async function fetchHitSellersWithAdAccounts(): Promise<SellerAdAccount[]
     gc_name: row.gc_name || null,
     gm_id: row.gm_id || null,
     gm_name: row.gm_name || null,
-    a2h_date: row.a2h_date || null,
+    a2h_date: a2hMap.get(row.seller_id || "") || row.a2h_date || null,
     live_date: row.live_date || null,
   }));
 }
