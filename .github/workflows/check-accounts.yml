@@ -1,0 +1,42 @@
+name: Check Meta Ad Account Statuses
+
+on:
+  schedule:
+    # Every 6 hours: 00:00, 06:00, 12:00, 18:00 UTC
+    - cron: "0 0,6,12,18 * * *"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  check-accounts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Trigger account status check
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/api/check-accounts" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}")
+
+          http_code=$(echo "$response" | tail -1)
+          body=$(echo "$response" | head -n -1)
+
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+
+          if [ "$http_code" != "200" ]; then
+            echo "::error::Check failed with HTTP $http_code"
+            exit 1
+          fi
+
+          echo "$body" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          print(f\"✅ Checked: {data.get('total_checked', 0)}\")
+          print(f\"🔴 Disabled: {data.get('disabled', 0)}\")
+          print(f\"⚠️ Under Review: {data.get('under_review', 0)}\")
+          print(f\"🟢 Active: {data.get('active', 0)}\")
+          print(f\"🔄 Reactivated: {data.get('reactivated', 0)}\")
+          print(f\"❌ Errors: {data.get('errors', 0)}\")
+          "
