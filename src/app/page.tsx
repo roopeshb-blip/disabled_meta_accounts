@@ -94,18 +94,17 @@ export default function Home() {
   const triggerCheck = async () => {
     setChecking(true);
     try {
-      const res = await fetch("/api/check-accounts", { method: "POST" });
+      const res = await fetch("/api/trigger-check", { method: "POST" });
       const data = await res.json();
       if (data.error) {
-        alert(`Check failed: ${data.error}`);
+        alert(`Trigger failed: ${data.error}`);
       } else {
-        alert(
-          `Check complete!\nTotal: ${data.total_checked}\nDisabled: ${data.disabled}\nUnder Review: ${data.under_review}\nReactivated: ${data.reactivated}\nErrors: ${data.errors}`
-        );
-        fetchAccounts();
+        alert(data.message || "Check triggered — results will appear in 2-5 minutes");
+        // Auto-refresh after 3 minutes
+        setTimeout(() => fetchAccounts(), 180000);
       }
     } catch (err) {
-      alert(`Check failed: ${err}`);
+      alert(`Trigger failed: ${err}`);
     } finally {
       setChecking(false);
     }

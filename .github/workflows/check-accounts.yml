@@ -4,39 +4,35 @@ on:
   schedule:
     # Every 6 hours: 00:00, 06:00, 12:00, 18:00 UTC
     - cron: "0 0,6,12,18 * * *"
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch: # Manual trigger from GitHub UI or API
 
 jobs:
   check-accounts:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30 # Generous timeout for Meta API rate limits
 
     steps:
-      - name: Trigger account status check
-        run: |
-          response=$(curl -s -w "\n%{http_code}" -X POST \
-            "${{ secrets.APP_URL }}/api/check-accounts" \
-            -H "Content-Type: application/json" \
-            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}")
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-          http_code=$(echo "$response" | tail -1)
-          body=$(echo "$response" | head -n -1)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
 
-          echo "HTTP Status: $http_code"
-          echo "Response: $body"
+      - name: Install dependencies
+        run: npm ci
 
-          if [ "$http_code" != "200" ]; then
-            echo "::error::Check failed with HTTP $http_code"
-            exit 1
-          fi
-
-          echo "$body" | python3 -c "
-          import sys, json
-          data = json.load(sys.stdin)
-          print(f\"✅ Checked: {data.get('total_checked', 0)}\")
-          print(f\"🔴 Disabled: {data.get('disabled', 0)}\")
-          print(f\"⚠️ Under Review: {data.get('under_review', 0)}\")
-          print(f\"🟢 Active: {data.get('active', 0)}\")
-          print(f\"🔄 Reactivated: {data.get('reactivated', 0)}\")
-          print(f\"❌ Errors: {data.get('errors', 0)}\")
-          "
+      - name: Run account status check
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          META_SYSTEM_USER_ID: ${{ secrets.META_SYSTEM_USER_ID }}
+          META_BM_ID: ${{ secrets.META_BM_ID }}
+          META_API_VERSION: v22.0
+          BQ_PROJECT_ID: blitzscale-prod-project
+          BQ_DATASET: nushop
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: npx tsx -r tsconfig-paths/register scripts/check-accounts.ts
