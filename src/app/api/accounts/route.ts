@@ -6,6 +6,8 @@ export async function GET(request: NextRequest) {
   const filter = searchParams.get("filter") || "all";
   const search = searchParams.get("search") || "";
   const gmFilter = searchParams.get("gm") || "";
+  const a2hFrom = searchParams.get("a2h_from") || "";
+  const a2hTo = searchParams.get("a2h_to") || "";
 
   try {
     const allStatuses = await getLatestStatuses();
@@ -37,6 +39,22 @@ export async function GET(request: NextRequest) {
           (s.seller_name as string)?.toLowerCase().includes(q) ||
           (s.ad_account_id as string)?.toLowerCase().includes(q)
       );
+    }
+
+    // Filter by A2H date range
+    if (a2hFrom) {
+      const from = new Date(a2hFrom);
+      filtered = filtered.filter((s) => {
+        if (!s.a2h_date) return false;
+        return new Date(s.a2h_date as string) >= from;
+      });
+    }
+    if (a2hTo) {
+      const to = new Date(a2hTo + "T23:59:59.999Z");
+      filtered = filtered.filter((s) => {
+        if (!s.a2h_date) return false;
+        return new Date(s.a2h_date as string) <= to;
+      });
     }
 
     // Filter by GM

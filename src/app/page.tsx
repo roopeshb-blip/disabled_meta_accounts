@@ -53,6 +53,8 @@ export default function Home() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [search, setSearch] = useState("");
   const [gmFilter, setGmFilter] = useState("");
+  const [a2hFrom, setA2hFrom] = useState("");
+  const [a2hTo, setA2hTo] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -67,6 +69,8 @@ export default function Home() {
       if (filter !== "all") params.set("filter", filter);
       if (search) params.set("search", search);
       if (gmFilter) params.set("gm", gmFilter);
+      if (a2hFrom) params.set("a2h_from", a2hFrom);
+      if (a2hTo) params.set("a2h_to", a2hTo);
 
       const res = await fetch(`/api/accounts?${params.toString()}`);
       const data = await res.json();
@@ -86,7 +90,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [filter, search, gmFilter]);
+  }, [filter, search, gmFilter, a2hFrom, a2hTo]);
 
   useEffect(() => {
     const debounce = setTimeout(() => fetchAccounts(), 300);
@@ -190,7 +194,7 @@ export default function Home() {
         </div>
 
         {/* Search & Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <input
             type="text"
             placeholder="Search by seller ID, name, or ad account ID..."
@@ -210,6 +214,32 @@ export default function Home() {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* A2H Date Range Filter */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
+          <span className="text-sm text-gray-600 font-medium whitespace-nowrap">A2H Date:</span>
+          <input
+            type="date"
+            value={a2hFrom}
+            onChange={(e) => setA2hFrom(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <span className="text-sm text-gray-400">to</span>
+          <input
+            type="date"
+            value={a2hTo}
+            onChange={(e) => setA2hTo(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {(a2hFrom || a2hTo) && (
+            <button
+              onClick={() => { setA2hFrom(""); setA2hTo(""); }}
+              className="px-3 py-2 text-sm text-gray-500 hover:text-red-600 border border-gray-300 rounded-lg"
+            >
+              Clear
+            </button>
+          )}
         </div>
 
         {/* Error State */}
