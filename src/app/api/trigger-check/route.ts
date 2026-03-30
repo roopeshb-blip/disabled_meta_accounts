@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 // Triggers the GitHub Actions workflow instead of running the check on Vercel
 export async function POST() {
-  const token = process.env.GITHUB_PAT;
+  const token = process.env.GH_PAT;
   const repo = "roopeshb-blip/disabled_meta_accounts";
   const workflow = "check-accounts.yml";
 
