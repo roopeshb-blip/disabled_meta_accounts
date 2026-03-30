@@ -4,6 +4,24 @@ const { Pool } = pg;
 
 let pool: pg.Pool | null = null;
 
+/** Safely parse a date value to ISO string for Postgres, handling various Metabase formats */
+function toISODate(val: unknown): string | null {
+  if (!val) return null;
+  const str = String(val);
+  // Already ISO format
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d.toISOString();
+  }
+  // DD-MM-YYYY or DD/MM/YYYY format from Metabase
+  const match = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+  if (match) {
+    const d = new Date(`${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}T00:00:00Z`);
+    return isNaN(d.getTime()) ? null : d.toISOString();
+  }
+  return null;
+}
+
 function getPool(): pg.Pool {
   if (pool) return pool;
   pool = new Pool({
@@ -96,7 +114,7 @@ export async function saveAccountStatuses(
       s.seller_id, s.seller_name, s.ad_account_id, s.ad_account_type,
       s.account_status, s.account_status_label, s.disable_reason, s.disable_reason_label,
       s.bm_id, s.bm_name, s.bm_status, s.gc_name, s.gc_id, s.gm_name, s.gm_id,
-      s.a2h_date || null, s.live_date || null, s.last_checked_at, s.previous_status, s.status_changed_at || null,
+      toISODate(s.a2h_date), toISODate(s.live_date), s.last_checked_at, s.previous_status, s.status_changed_at || null,
     );
   }
 
@@ -117,7 +135,7 @@ export async function saveAccountStatuses(
         s.seller_id, s.seller_name, s.ad_account_id, s.ad_account_type,
         s.account_status, s.account_status_label, s.disable_reason, s.disable_reason_label,
         s.bm_id, s.bm_name, s.bm_status, s.gc_name, s.gc_id, s.gm_name, s.gm_id,
-        s.a2h_date || null, s.live_date || null, s.last_checked_at, s.previous_status, s.status_changed_at || null,
+        toISODate(s.a2h_date), toISODate(s.live_date), s.last_checked_at, s.previous_status, s.status_changed_at || null,
       );
     }
 

@@ -28,6 +28,12 @@ export async function GET(request: NextRequest) {
           s.previous_status != null &&
           [2, 7, 9, 100].includes(s.previous_status as number)
       );
+    } else if (filter === "error") {
+      filtered = filtered.filter((s) => s.account_status === -1);
+    } else if (filter === "unsettled") {
+      filtered = filtered.filter((s) => s.account_status === 3);
+    } else if (filter === "temp_unavailable") {
+      filtered = filtered.filter((s) => s.account_status === 101);
     }
 
     // Search by seller_id or seller_name

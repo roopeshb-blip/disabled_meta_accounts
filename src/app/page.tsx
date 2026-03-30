@@ -25,7 +25,7 @@ interface AccountRecord {
   status_changed_at: string | null;
 }
 
-type FilterType = "all" | "disabled" | "under_review" | "active" | "reactivated";
+type FilterType = "all" | "disabled" | "under_review" | "active" | "reactivated" | "error" | "unsettled" | "temp_unavailable";
 
 const STATUS_COLORS: Record<number, string> = {
   1: "bg-green-100 text-green-800",
@@ -117,9 +117,12 @@ export default function Home() {
   };
 
   // Summary counts
+  const activeCount = accounts.filter((a) => a.account_status === 1).length;
   const disabledCount = accounts.filter((a) => a.account_status === 2).length;
   const reviewCount = accounts.filter((a) => [7, 9, 100].includes(a.account_status)).length;
-  const activeCount = accounts.filter((a) => a.account_status === 1).length;
+  const unsettledCount = accounts.filter((a) => a.account_status === 3).length;
+  const tempUnavailableCount = accounts.filter((a) => a.account_status === 101).length;
+  const errorCount = accounts.filter((a) => a.account_status === -1).length;
   const reactivatedCount = accounts.filter(
     (a) => a.account_status === 1 && a.previous_status != null && [2, 7, 9, 100].includes(a.previous_status)
   ).length;
@@ -155,13 +158,20 @@ export default function Home() {
 
       <main className="max-w-7xl mx-auto px-6 py-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <SummaryCard
             label="Total"
             count={total}
             color="bg-blue-50 text-blue-700 border-blue-200"
             active={filter === "all"}
             onClick={() => setFilter("all")}
+          />
+          <SummaryCard
+            label="Active"
+            count={activeCount}
+            color="bg-green-50 text-green-700 border-green-200"
+            active={filter === "active"}
+            onClick={() => setFilter("active")}
           />
           <SummaryCard
             label="Disabled"
@@ -177,12 +187,28 @@ export default function Home() {
             active={filter === "under_review"}
             onClick={() => setFilter("under_review")}
           />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <SummaryCard
-            label="Active"
-            count={activeCount}
-            color="bg-green-50 text-green-700 border-green-200"
-            active={filter === "active"}
-            onClick={() => setFilter("active")}
+            label="Unsettled"
+            count={unsettledCount}
+            color="bg-orange-50 text-orange-700 border-orange-200"
+            active={filter === "unsettled"}
+            onClick={() => setFilter("unsettled")}
+          />
+          <SummaryCard
+            label="Temp Unavailable"
+            count={tempUnavailableCount}
+            color="bg-gray-50 text-gray-700 border-gray-200"
+            active={filter === "temp_unavailable"}
+            onClick={() => setFilter("temp_unavailable")}
+          />
+          <SummaryCard
+            label="Error"
+            count={errorCount}
+            color="bg-gray-50 text-gray-500 border-gray-200"
+            active={filter === "error"}
+            onClick={() => setFilter("error")}
           />
           <SummaryCard
             label="Reactivated"

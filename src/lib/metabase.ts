@@ -16,7 +16,7 @@ export interface SellerAdAccount {
   live_date: string | null;
 }
 
-const METABASE_CARD_ID = 8933; // "Meta Ad Account Monitor - Hit Sellers v3 (with A2H + Live Date, GC required)"
+const METABASE_CARD_ID = 8934; // "Meta Ad Account Monitor - Hit Sellers v4 (fixed A2H date)"
 
 async function getSessionToken(): Promise<string> {
   const metabaseUrl = process.env.METABASE_URL;
