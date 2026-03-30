@@ -32,7 +32,8 @@ jobs:
           META_API_VERSION: v22.0
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           METABASE_URL: ${{ secrets.METABASE_URL }}
-          METABASE_API_KEY: ${{ secrets.METABASE_API_KEY }}
+          METABASE_EMAIL: ${{ secrets.METABASE_EMAIL }}
+          METABASE_PASSWORD: ${{ secrets.METABASE_PASSWORD }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: npx tsx -r tsconfig-paths/register scripts/check-accounts.ts

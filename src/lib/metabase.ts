@@ -1,6 +1,6 @@
 /**
  * Fetches seller data from Metabase API using saved card #8931.
- * This avoids needing direct BQ credentials.
+ * Authenticates with email/password to get a session token.
  */
 
 export interface SellerAdAccount {
@@ -16,20 +16,40 @@ export interface SellerAdAccount {
 
 const METABASE_CARD_ID = 8931; // "Meta Ad Account Monitor - Hit Sellers"
 
+async function getSessionToken(): Promise<string> {
+  const metabaseUrl = process.env.METABASE_URL;
+  const email = process.env.METABASE_EMAIL;
+  const password = process.env.METABASE_PASSWORD;
+
+  if (!metabaseUrl || !email || !password) {
+    throw new Error("METABASE_URL, METABASE_EMAIL, and METABASE_PASSWORD must be set");
+  }
+
+  const response = await fetch(`${metabaseUrl}/api/session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: email, password }),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.text();
+    throw new Error(`Metabase auth failed ${response.status}: ${errBody}`);
+  }
+
+  const data = await response.json();
+  return data.id; // session token
+}
+
 export async function fetchHitSellersWithAdAccounts(): Promise<SellerAdAccount[]> {
   const metabaseUrl = process.env.METABASE_URL;
-  const metabaseApiKey = process.env.METABASE_API_KEY;
-
-  if (!metabaseUrl || !metabaseApiKey) {
-    throw new Error("METABASE_URL and METABASE_API_KEY must be set");
-  }
+  const sessionToken = await getSessionToken();
 
   const url = `${metabaseUrl}/api/card/${METABASE_CARD_ID}/query/json`;
 
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      "x-api-key": metabaseApiKey,
+      "X-Metabase-Session": sessionToken,
       "Content-Type": "application/json",
     },
   });
