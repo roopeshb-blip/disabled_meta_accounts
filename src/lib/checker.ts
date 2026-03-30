@@ -1,4 +1,5 @@
-import { fetchHitSellersWithAdAccounts, saveAccountStatuses, getPreviousStatusMap } from "./bigquery";
+import { fetchHitSellersWithAdAccounts } from "./metabase";
+import { initSchema, saveAccountStatuses, getPreviousStatusMap } from "./database";
 import { batchCheckAccountStatuses, AccountCheckResult } from "./meta-api";
 import { sendSlackAlert } from "./slack";
 import { AdAccountStatus, ACCOUNT_STATUS_MAP, DISABLE_REASON_MAP, CheckResult } from "@/types";
@@ -7,7 +8,10 @@ export async function runFullCheck(): Promise<CheckResult> {
   const checkedAt = new Date().toISOString();
   console.log(`[${checkedAt}] Starting account status check...`);
 
-  // Step 1: Fetch all hit sellers with FB ad accounts + GC/GM mapping
+  // Ensure Postgres table exists
+  await initSchema();
+
+  // Step 1: Fetch all hit sellers with FB ad accounts + GC/GM mapping from Metabase
   const sellers = await fetchHitSellersWithAdAccounts();
   console.log(`Found ${sellers.length} seller-ad-account rows to check`);
 
@@ -93,7 +97,7 @@ export async function runFullCheck(): Promise<CheckResult> {
     }
   }
 
-  // Step 5: Save to BigQuery
+  // Step 5: Save to Supabase Postgres
   try {
     await saveAccountStatuses(
       fullStatuses.map((s) => ({
@@ -102,9 +106,9 @@ export async function runFullCheck(): Promise<CheckResult> {
         status_changed_at: s.status_changed_at || null,
       }))
     );
-    console.log(`Saved ${fullStatuses.length} status records to BigQuery`);
+    console.log(`Saved ${fullStatuses.length} status records to Postgres`);
   } catch (err) {
-    console.error("Failed to save to BigQuery:", err);
+    console.error("Failed to save to Postgres:", err);
   }
 
   // Step 6: Send Slack alerts for problematic accounts

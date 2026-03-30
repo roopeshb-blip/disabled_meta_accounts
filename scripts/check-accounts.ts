@@ -1,9 +1,10 @@
 /**
  * Standalone check script — runs in GitHub Actions.
- * Queries BQ for hit sellers, checks Meta API, saves results, sends Slack alerts.
+ * Fetches sellers from Metabase, checks Meta API, saves to Supabase Postgres, sends Slack alerts.
  */
 import "tsconfig-paths/register";
 import { runFullCheck } from "@/lib/checker";
+import { closePool } from "@/lib/database";
 
 async function main() {
   console.log("=== Meta Ad Account Status Check ===");
@@ -23,6 +24,8 @@ async function main() {
     console.log(`Errors:         ${result.errors}`);
     console.log(`Completed at:   ${result.checked_at}`);
 
+    await closePool();
+
     // Fail the action if there were errors on >10% of accounts
     if (result.errors > 0 && result.errors / result.total_checked > 0.1) {
       console.error(`\nWARNING: ${result.errors} errors (>${Math.round(result.errors / result.total_checked * 100)}% failure rate)`);
@@ -32,6 +35,7 @@ async function main() {
     process.exit(0);
   } catch (err) {
     console.error("Fatal error:", err);
+    await closePool();
     process.exit(1);
   }
 }

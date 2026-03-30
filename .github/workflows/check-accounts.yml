@@ -30,9 +30,9 @@ jobs:
           META_SYSTEM_USER_ID: ${{ secrets.META_SYSTEM_USER_ID }}
           META_BM_ID: ${{ secrets.META_BM_ID }}
           META_API_VERSION: v22.0
-          BQ_PROJECT_ID: blitzscale-prod-project
-          BQ_DATASET: nushop
-          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          METABASE_URL: ${{ secrets.METABASE_URL }}
+          METABASE_API_KEY: ${{ secrets.METABASE_API_KEY }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: npx tsx -r tsconfig-paths/register scripts/check-accounts.ts

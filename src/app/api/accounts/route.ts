@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLatestStatuses } from "@/lib/bigquery";
+import { getLatestStatuses } from "@/lib/database";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
