@@ -76,6 +76,7 @@ export async function runFullCheck(): Promise<CheckResult> {
       gm_name: sellerData.gm_name,
       gm_id: sellerData.gm_id,
       a2h_date: sellerData.a2h_date,
+      live_date: sellerData.live_date,
       last_checked_at: checkedAt,
       previous_status: previousStatus,
       status_changed_at: statusChanged ? checkedAt : null,
